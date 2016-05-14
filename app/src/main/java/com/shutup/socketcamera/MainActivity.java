@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
+            mCamera.stopPreview();
             mCamera.release();
         }
     }
@@ -55,9 +57,11 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA);
             }
             else{
-                mCamera = getCameraInstance();
-                mPreview = new CameraPreview(MainActivity.this, mCamera);
-                mCameraPreview.addView(mPreview);
+                if (mCamera == null) {
+                    mCamera = getCameraInstance();
+                    mPreview = new CameraPreview(MainActivity.this, mCamera);
+                    mCameraPreview.addView(mPreview);
+                }
             }
         }
     }

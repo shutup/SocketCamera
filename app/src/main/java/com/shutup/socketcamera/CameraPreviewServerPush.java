@@ -123,6 +123,7 @@ public class CameraPreviewServerPush extends SurfaceView implements SurfaceHolde
                 public void onPreviewFrame(byte[] data, Camera camera) {
                     if (isOk) {
                         if (!isFirst) {
+                            //in first call we need to send the response HTTP Header + Frame Header + data
                             isFirst = true;
 //                            byte[] temp = rotateYUV420Degree90(data, prevSizeW,prevSizeH);
                             YuvImage yuv = new YuvImage(data, ImageFormat.NV21, prevSizeW, prevSizeH, null);
@@ -143,6 +144,7 @@ public class CameraPreviewServerPush extends SurfaceView implements SurfaceHolde
                             System.arraycopy(baos.toByteArray(), 0, dataPic, dst, len);
                             isOk = false;
                         } else {
+                            //then when next call ,we only need to send Frame Header + data
 //                            byte[] temp = rotateYUV420Degree90(data, prevSizeW,prevSizeH);
                             YuvImage yuv = new YuvImage(data, ImageFormat.NV21, prevSizeW, prevSizeH, null);
                             Rect r = new Rect(0, 0, prevSizeW, prevSizeH);

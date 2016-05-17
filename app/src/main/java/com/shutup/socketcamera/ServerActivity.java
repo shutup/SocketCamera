@@ -18,11 +18,17 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -56,6 +62,43 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
         ButterKnife.inject(this);
 
         initEvent();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mOutputStream != null) {
+            try {
+                mOutputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mSocket != null) {
+            if (!mSocket.isClosed()){
+                try {
+                    mSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        if (mServerSocket != null) {
+            if (!mServerSocket.isClosed()) {
+                try {
+                    mServerSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+        isOk = false;
+
+
     }
 
     private void initEvent() {
@@ -110,9 +153,6 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
 
     @OnClick(R.id.serverCloseBtn)
     public void onClick() {
-        mCamera.setPreviewCallback(null);
-        mCamera.stopPreview();
-        mCamera.release();
         onBackPressed();
     }
 
@@ -125,6 +165,7 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
             } else {
                 if (mCamera == null) {
                     mCamera = getCameraInstance();
+                    mCamera.setPreviewCallback(this);
                     mPreview = new CameraPreview(ServerActivity.this, mCamera);
                     mCameraPreviewLayout.addView(mPreview);
                 }
@@ -139,6 +180,7 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission Granted
                 mCamera = getCameraInstance();
+                mCamera.setPreviewCallback(this);
                 mPreview = new CameraPreview(ServerActivity.this, mCamera);
                 mCameraPreviewLayout.addView(mPreview);
             } else {
@@ -149,7 +191,6 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
     }
 
     class ServerWriter extends Thread {
-
         @Override
         public void run() {
             super.run();
@@ -160,15 +201,17 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            while (isRun) {
+            while (isRun && !mSocket.isClosed()) {
                 if (isOk) {
                     try {
+                        mOutputStream.write(ByteBuffer.allocate(4).putInt(baos.size()).array());
                         mOutputStream.write(baos.toByteArray());
                         mOutputStream.flush();
-                        isOk = false;
                     } catch (IOException e) {
                         e.printStackTrace();
+                        isRun = false;
                     }
+                    isOk = false;
                 }
             }
         }

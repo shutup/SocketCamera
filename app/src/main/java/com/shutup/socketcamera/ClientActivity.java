@@ -8,14 +8,22 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -42,6 +50,29 @@ public class ClientActivity extends AppCompatActivity {
         initEvent();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mInputStream != null) {
+            try {
+                mInputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mSocket != null) {
+            if (!mSocket.isClosed()){
+                try {
+                    mSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        isRun = false;
+    }
     private void initEvent() {
         mHandler = new Handler(new Handler.Callback() {
             @Override
@@ -68,24 +99,48 @@ public class ClientActivity extends AppCompatActivity {
             Intent intent = getIntent();
             server_addr = intent.getStringExtra("server_addr");
             if (server_addr == null || server_addr.equalsIgnoreCase("")) {
-//                Toast.makeText(this, "no server apply", Toast.LENGTH_SHORT).show();
             }
             String[] serverComponts = server_addr.split(":");
             if (serverComponts.length == 2) {
                 try {
-                    mSocket = new Socket(serverComponts[0],Integer.parseInt(serverComponts[1]));
-                    if (mSocket.isConnected()){
-//                        Toast.makeText(this, "server connected!", Toast.LENGTH_SHORT).show();
+                    mSocket = new Socket(serverComponts[0], Integer.parseInt(serverComponts[1]));
+                    if (mSocket.isConnected()) {
                         mInputStream = mSocket.getInputStream();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-            while (isRun) {
-                Bitmap bitmap = BitmapFactory.decodeStream(mInputStream);
+            while (isRun && mSocket.isConnected()) {
+                byte[] sizeArray = new byte[4];
+                try {
+                    mInputStream.read(sizeArray);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                int picLength = ByteBuffer.wrap(sizeArray).asIntBuffer().get();
+
+                Log.d("ClientReader", "picLength:" + picLength);
+                byte[] b = new byte[picLength];
+                try {
+                    int totalLen = 0;
+                    int bufferSize = 4 * 1024;
+                    while (totalLen < picLength) {
+                        int len = 0;
+                        if (bufferSize >= picLength - totalLen) {
+                            len = mInputStream.read(b, totalLen, picLength - totalLen);
+                        } else {
+                            len = mInputStream.read(b, totalLen, bufferSize);
+                        }
+                        totalLen += len;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(b);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 Message message = mHandler.obtainMessage();
-                message.what =1;
+                message.what = 1;
                 if (bitmap != null) {
                     message.obj = bitmap;
                     mHandler.sendMessage(message);

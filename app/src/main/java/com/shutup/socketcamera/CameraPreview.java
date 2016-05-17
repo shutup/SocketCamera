@@ -1,15 +1,11 @@
 package com.shutup.socketcamera;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -21,11 +17,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private String TAG = "CameraPreview";
     private SurfaceHolder mHolder = null;
     private Camera mCamera = null;
+    private ServerActivity mServerActivity = null;
     private int prevSizeW = 0;
     private int prevSizeH = 0;
 
     public CameraPreview(Context context, Camera camera) {
         super(context);
+        mServerActivity = (ServerActivity) context;
         mCamera = camera;
 
         // Install a SurfaceHolder.Callback so we get notified when the
@@ -87,8 +85,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                     parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
                 }
             }
-//            parameters.setPreviewSize(320,240);
+            parameters.setPreviewSize(320,240);
             mCamera.setParameters(parameters);
+            mCamera.setPreviewCallback(mServerActivity);
             mCamera.startPreview();
             prevSizeW = mCamera.getParameters().getPreviewSize().width;
             prevSizeH = mCamera.getParameters().getPreviewSize().height;
@@ -97,6 +96,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
+            mCamera.stopPreview();
+            mCamera.release();
+        }
     }
 }

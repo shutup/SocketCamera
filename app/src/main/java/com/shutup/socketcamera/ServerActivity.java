@@ -95,10 +95,7 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
             }
         }
 
-
         isOk = false;
-
-
     }
 
     private void initEvent() {
@@ -195,20 +192,24 @@ public class ServerActivity extends AppCompatActivity implements Camera.PreviewC
         public void run() {
             super.run();
             try {
+                //listen on 8888
                 mServerSocket = new ServerSocket(8888);
                 mSocket = mServerSocket.accept();
                 mOutputStream = mSocket.getOutputStream();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            while (isRun && !mSocket.isClosed()) {
+            while (isRun) {
                 if (isOk) {
                     try {
+                        //first write the data length to the outputStream ,it need a int size 4
                         mOutputStream.write(ByteBuffer.allocate(4).putInt(baos.size()).array());
+                        //then write the data to the outputStream
                         mOutputStream.write(baos.toByteArray());
                         mOutputStream.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
+                        //if have any exception,close the thread
                         isRun = false;
                     }
                     isOk = false;

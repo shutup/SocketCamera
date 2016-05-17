@@ -109,9 +109,10 @@ public class ClientActivity extends AppCompatActivity {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
+                    isRun = false;
                 }
             }
-            while (isRun && mSocket.isConnected()) {
+            while (isRun) {
                 byte[] sizeArray = new byte[4];
                 try {
                     mInputStream.read(sizeArray);
@@ -119,14 +120,19 @@ public class ClientActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 int picLength = ByteBuffer.wrap(sizeArray).asIntBuffer().get();
-
+                if (picLength == 0){
+                    isRun = false;
+                }
                 Log.d("ClientReader", "picLength:" + picLength);
                 byte[] b = new byte[picLength];
                 try {
                     int totalLen = 0;
                     int bufferSize = 4 * 1024;
+                    //when the read totalLen is less than the picLength
                     while (totalLen < picLength) {
                         int len = 0;
+                        //if the left data is less than bufferSize,read them all ,
+                        //else read them by bufferSize
                         if (bufferSize >= picLength - totalLen) {
                             len = mInputStream.read(b, totalLen, picLength - totalLen);
                         } else {

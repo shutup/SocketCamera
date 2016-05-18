@@ -1,4 +1,4 @@
-package com.shutup.socketcamera;
+package com.shutup.socketcamera.server_push_transer;
 
 import android.Manifest;
 import android.content.Context;
@@ -13,6 +13,8 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
+import com.shutup.socketcamera.R;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -82,13 +84,9 @@ public class ServerPushActivity extends AppCompatActivity {
      * Check if this device has a camera
      */
     private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
     }
 
     /**

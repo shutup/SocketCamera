@@ -1,4 +1,4 @@
-package com.shutup.socketcamera;
+package com.shutup.socketcamera.server_push_transer;
 
 import android.app.Activity;
 import android.content.Context;

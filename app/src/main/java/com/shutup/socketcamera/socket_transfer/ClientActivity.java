@@ -1,4 +1,4 @@
-package com.shutup.socketcamera;
+package com.shutup.socketcamera.socket_transfer;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.shutup.socketcamera.R;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -41,7 +43,6 @@ public class ClientActivity extends AppCompatActivity {
     private Socket mSocket = null;
     private InputStream mInputStream = null;
     private boolean isRun = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +94,9 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     class ClientReader extends Thread {
+        private boolean isFull = false;
+        private long startTime = 0;
+        private int fpsCount = 0;
         @Override
         public void run() {
             super.run();
@@ -113,6 +117,10 @@ public class ClientActivity extends AppCompatActivity {
                 }
             }
             while (isRun) {
+                if (!isFull) {
+                    startTime = System.nanoTime();
+                    isFull = true;
+                }
                 byte[] sizeArray = new byte[4];
                 try {
                     mInputStream.read(sizeArray);
@@ -150,6 +158,17 @@ public class ClientActivity extends AppCompatActivity {
                 if (bitmap != null) {
                     message.obj = bitmap;
                     mHandler.sendMessage(message);
+                    if (fpsCount < 60){
+                        fpsCount++;
+                    }else {
+                        isFull = false;
+                        long endTime = System.nanoTime();
+                        long gap = endTime - startTime;
+                        long fps = 1000000000 / (gap / fpsCount);
+                        Log.d("ClientActivity", "gap:" + gap);
+                        Log.d("ClientActivity", "fps:" + fps);
+                        fpsCount = 0;
+                    }
                 }
             }
         }

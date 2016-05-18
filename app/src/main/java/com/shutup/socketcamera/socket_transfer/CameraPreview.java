@@ -1,4 +1,4 @@
-package com.shutup.socketcamera;
+package com.shutup.socketcamera.socket_transfer;
 
 import android.content.Context;
 import android.hardware.Camera;

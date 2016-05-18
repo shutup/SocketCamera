@@ -15,18 +15,22 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".menu.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ServerActivity">
+        <activity android:name=".socket_transfer.ServerActivity">
         </activity>
-        <activity android:name=".ClientActivity">
+        <activity android:name=".socket_transfer.ClientActivity">
         </activity>
-        <activity android:name=".ServerPushActivity">
+        <activity android:name=".server_push_transer.ServerPushActivity">
+        </activity>
+        <activity android:name=".socket_transfer.SocketTransferActivity">
+        </activity>
+        <activity android:name=".server_push_transer.ServerPushTransferActivity">
         </activity>
     </application>
 

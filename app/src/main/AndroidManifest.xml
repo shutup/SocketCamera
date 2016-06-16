@@ -32,6 +32,8 @@
         </activity>
         <activity android:name=".server_push_transer.ServerPushTransferActivity">
         </activity>
+        <activity android:name=".base.BaseActivity">
+        </activity>
     </application>
 
 </manifest>
